@@ -1,3 +1,7 @@
+
+<img width="1774" height="887" alt="# آوا — گفتار فارسی و استخراج JSON" src="https://github.com/user-attachments/assets/5fbe6907-650d-4b8f-a351-22c186532f4c" />
+
+
 # آوا — گفتار فارسی و استخراج JSON
 
 برنامهٔ فارسی و RTL برای مسیر «صوت → متن قابل ویرایش → JSON مطابق Schema». Whisper Tiny و Small چندزبانه و سه اندازهٔ Shenava در مرورگر اجرا می‌شوند. استخراج JSON با مدل رایگان انتخابی کاربر در API OpenRouter انجام می‌شود. **با درخواست استخراج، متن انتخابی و JSON Schema به OpenRouter ارسال می‌شوند؛ فایل صوتی ارسال نمی‌شود.** کلید API از `.env` فقط در فرایند Node خوانده می‌شود؛ مرورگر آن را دریافت نمی‌کند.
@@ -7,8 +11,6 @@
 ![نمای کامل مسیر صوت تا خروجی JSON](docs/screenshots/overview.png)
 
 نمای نزدیک‌تر از ابتدای صفحه و چیدمان باریک:
-
-![نمای دسکتاپ آوا در ابتدای کار](docs/screenshots/desktop.png)
 
 ![نمای موبایل آوا با عرض ۳۹۰ پیکسل](docs/screenshots/mobile.png)
 
