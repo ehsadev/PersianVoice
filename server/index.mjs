@@ -4,18 +4,21 @@ import { resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { handleApi } from './api.mjs';
 import { staticHeaders } from './static.mjs';
+import { extractionConfig } from './config.mjs';
+import { configureNetwork } from './network.mjs';
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const envPath = resolve(root, '.env');
 if (existsSync(envPath)) process.loadEnvFile(envPath);
-const apiKey = process.env.OPENROUTER_API_KEY || process.env.OPENROUTER_APIKEY || '';
+configureNetwork();
+const config = extractionConfig();
 const dev = process.argv.includes('--dev');
 const port = Number(process.env.PORT || 5173);
 const vite = dev ? await import('vite').then(({ createServer: createVite }) => createVite({ root, server: { middlewareMode: true }, appType: 'spa' })) : null;
 
 const server = createServer(async (req, res) => {
   try {
-    if (await handleApi(req, res, { apiKey })) return;
+    if (await handleApi(req, res, config)) return;
     if (vite) return vite.middlewares(req, res);
     const dist = resolve(root, 'dist');
     const pathname = decodeURIComponent(new URL(req.url || '/', 'http://localhost').pathname);

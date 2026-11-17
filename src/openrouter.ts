@@ -7,13 +7,13 @@ export const OPENROUTER_MODELS = {
   'inclusionai/ling-3.2-flash:free': { label: 'Ling 3.2 Flash', provider: 'Ant Digital' },
   'liquid/lfm-3-1.7b:free': { label: 'LFM3 1.7B', provider: 'Liquid AI' },
 } as const;
-export type OpenRouterModel = keyof typeof OPENROUTER_MODELS;
+export type OpenRouterModel = string;
 export type TokenUsage = { promptTokens: number | null; completionTokens: number | null; totalTokens: number | null; cachedTokens: number | null; reasoningTokens: number | null };
 export type ExtractionResult = { data: unknown; usage: TokenUsage | null };
 
 export async function extractWithOpenRouter(text: string, schema: JsonSchema, signal?: AbortSignal, fetcher: typeof fetch = fetch, model: OpenRouterModel = OPENROUTER_MODEL): Promise<ExtractionResult> {
   if (!text.trim()) throw new Error('متن برای استخراج خالی است.');
-  if (!(model in OPENROUTER_MODELS)) throw new Error('مدل OpenRouter پشتیبانی نمی‌شود.');
+  if (!model.trim()) throw new Error('مدل استخراج انتخاب نشده است.');
   let response: Response;
   try {
     response = await fetcher('/api/extract', {

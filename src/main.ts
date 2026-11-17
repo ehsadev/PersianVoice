@@ -12,12 +12,12 @@ const exampleSchema = { type: 'object', description: 'فاکتور فروشگا�
 const app = document.querySelector<HTMLDivElement>('#app')!;
 app.innerHTML = `
   <a class="skip-link" href="#workflow">رفتن به مراحل کار</a><header class="topbar"><div class="brand"><span class="brand-mark" aria-hidden="true">◉</span><span>آوا</span><small>کارگاه گفتار فارسی</small></div><div class="privacy"><span class="privacy-dot"></span>پردازش صوت روی دستگاه شما</div></header>
-  <main id="workflow"><section class="hero"><div class="hero-copy"><div class="eyebrow">استودیوی گفتار به داده · فارسی و راست‌به‌چپ</div><h1>از صدای فارسی،<br><em>دادهٔ قابل بررسی</em> بسازید.</h1><p>صوت را با Whisper یا شنوا رونویسی کنید، متن را بازبینی کنید و با قالب دلخواه خود از OpenRouter خروجی JSON بگیرید.</p><div class="hero-pills"><span>✓ مدل‌های صوتی در مرورگر</span><span>✓ متن قابل ویرایش</span><span>✓ اعتبارسنجی JSON Schema</span></div></div><div class="journey" aria-label="مراحل کار"><div><b>۰۱</b><span>صوت را انتخاب کنید</span></div><div><b>۰۲</b><span>رونویسی را بازبینی کنید</span></div><div><b>۰۳</b><span>قالب را مشخص کنید</span></div><div><b>۰۴</b><span>JSON را بررسی کنید</span></div></div></section>
+  <main id="workflow"><section class="hero"><div class="hero-copy"><div class="eyebrow">استودیوی گفتار به داده · فارسی و راست‌به‌چپ</div><h1>از صدای فارسی،<br><em>دادهٔ قابل بررسی</em> بسازید.</h1><p>صوت را با Whisper یا شنوا رونویسی کنید، متن را بازبینی کنید و با قالب دلخواه خود از مدل انتخابی خروجی JSON بگیرید.</p><div class="hero-pills"><span>✓ مدل‌های صوتی در مرورگر</span><span>✓ متن قابل ویرایش</span><span>✓ اعتبارسنجی JSON Schema</span></div></div><div class="journey" aria-label="مراحل کار"><div><b>۰۱</b><span>صوت را انتخاب کنید</span></div><div><b>۰۲</b><span>رونویسی را بازبینی کنید</span></div><div><b>۰۳</b><span>قالب را مشخص کنید</span></div><div><b>۰۴</b><span>JSON را بررسی کنید</span></div></div></section>
   <div class="notice" id="capability">در حال بررسی قابلیت‌های مرورگر…</div>
   <div class="grid"><section class="card audio-card"><div class="card-head"><span class="step">۰۱</span><div><h2>صوت فارسی</h2><p>یک صوت را با یک یا چند موتور بسنجید.</p></div></div><label class="field-label" for="asrMode">موتور تشخیص گفتار</label><select id="asrMode" class="wide-select"><option value="">موتور را انتخاب کنید</option><option value="tiny">Whisper Tiny</option><option value="small">Whisper Small</option><option value="shenava">شنوا ریزه‌پیزه</option><option value="shenavaRizeh">شنوا ریزه</option><option value="shenavaKoochik">شنوا کوچک</option><option value="both">مقایسه Whisper Tiny و ریزه‌پیزه</option><option value="shenavaAll">مقایسه سه شنوا</option><option value="all">مقایسه همهٔ پنج موتور</option></select><label class="field-label" for="executionDevice">روش اجرا</label><select id="executionDevice" class="wide-select"><option value="auto">خودکار: WebGPU سپس WASM</option><option value="webgpu">فقط WebGPU</option><option value="wasm">فقط WASM</option></select><div id="asrModels" class="model-list"></div><div class="actions"><button id="record" class="primary">● شروع ضبط</button><button id="stopRecord" disabled>■ توقف ضبط</button><label class="file-button">بارگذاری صوت<input id="audioFile" type="file" accept="audio/*"></label></div><div class="audio-info"><span id="recordTime">۰۰:۰۰</span><span id="audioName">هنوز صوتی انتخاب نشده است</span></div><audio id="player" controls hidden></audio><label class="field-label" for="reference">متن صحیح مرجع (اختیاری)</label><textarea id="reference" class="compact" placeholder="اگر متن صحیح را دارید، برای محاسبه WER و CER وارد کنید."></textarea><div class="actions"><button id="transcribe" class="primary" disabled>تبدیل صوت به متن</button><button id="report" disabled>دریافت گزارش مقایسه</button><button id="useReference">استفاده از متن مرجع برای JSON</button></div><p class="hint">حداکثر ۲ دقیقه و ۲۵ مگابایت. صوت به ۱۶ کیلوهرتز تک‌کاناله تبدیل می‌شود. مدل‌ها ترتیبی اجرا و آزاد می‌شوند.</p></section>
   <section class="card transcript-card"><div class="card-head"><span class="step">۰۲</span><div><h2>متن قابل ویرایش</h2><p>رونویسی را اصلاح کنید یا مستقیم بنویسید.</p></div></div><textarea id="transcript" placeholder="متن فارسی را اینجا بنویسید…" spellcheck="true"></textarea><div class="under"><span id="textCount">۰ نویسه</span><button id="sample" class="text-button">بارگذاری نمونه</button></div></section>
   <section class="card schema-card"><div class="card-head"><span class="step">۰۳</span><div><h2>قالب اجباری JSON</h2><p>Schema نسخهٔ Draft-07 را ویرایش و بررسی کنید.</p></div></div><div class="segmented"><button id="modeSchema" class="selected">JSON Schema</button><button id="modeExample">از نمونهٔ JSON</button></div><div id="exampleBox" hidden><textarea id="example" class="compact" placeholder='{"name":"کالا","quantity":1}'></textarea><button id="makeSchema">ساخت Schema اولیه</button></div><textarea id="schema" class="code" dir="ltr" placeholder='{"type":"object","properties":{...}}'></textarea><div class="description-editor"><strong>راهنمای معنایی فیلدها</strong><p class="hint">توضیح کل داده و هر فیلد را بنویسید؛ در description همان Schema ذخیره و برای مدل ارسال می‌شود. این راهنما به اصلاح خطاهای واضح رونویسی در مقدارهای JSON کمک می‌کند.</p><div id="descriptionFields" class="description-fields"></div></div><div class="actions"><button id="checkSchema">بررسی قالب</button><span id="schemaStatus" class="small-status">قالب وارد نشده است</span></div><div class="template-tools"><input id="templateName" placeholder="نام قالب" aria-label="نام قالب"><button id="saveTemplate">ذخیره</button><select id="templates" aria-label="قالب‌های ذخیره‌شده"><option value="">قالب‌های ذخیره‌شده</option></select><button id="deleteTemplate">حذف</button><button id="exportTemplate">صدور</button><label class="file-button">ورود<input id="importTemplate" type="file" accept="application/json,.json" hidden></label></div><p class="hint">شیءها، آرایه‌ها، required، enum، null و $ref داخلی پشتیبانی می‌شوند. فیلد اضافی پذیرفته نمی‌شود.</p></section>
-  <section class="card output-card"><div class="card-head"><span class="step">۰۴</span><div><h2>خروجی ساخت‌یافته</h2><p>نتیجه را پیش از هر استفاده‌ای بازبینی کنید.</p></div></div><label class="field-label" for="apiModel">مدل رایگان استخراج JSON</label><select id="apiModel" class="wide-select"><option value="nvidia/nemotron-3.5-super-vl:free">Nemotron 3.5 Super VL</option><option value="baidu/ernie-5.5-flash-preview:free">ERNIE 5.5 Flash Preview</option><option value="inclusionai/ling-3.2-flash:free">Ling 3.2 Flash</option><option value="liquid/lfm-3-1.7b:free">LFM3 1.7B</option></select><div id="apiInfo" class="model"></div><div id="apiKeyStatus" class="key-status" role="status">در حال بررسی اتصال امن OpenRouter…</div><p class="hint privacy-hint">کلید API فقط در فایل <code>.env</code> روی سرور محلی خوانده می‌شود و به مرورگر تحویل داده نمی‌شود. هنگام استخراج، متن و JSON Schema به OpenRouter فرستاده می‌شوند؛ فایل صوتی ارسال نمی‌شود. مدل‌های رایگان سهمیهٔ مشترک دارند و دسترسی آن‌ها ممکن است تغییر کند.</p><div class="actions"><button id="extract" class="primary">تبدیل متن به JSON</button><button id="compareJson">مقایسه JSON متن‌های ASR</button><button id="cancel" disabled>توقف پردازش</button></div><div id="status" class="status idle">آماده</div><div id="progress" class="progress-list"></div><div id="timings" class="timings"></div><div id="tokenUsage" class="token-usage" role="status">مصرف توکن پس از استخراج نمایش داده می‌شود.</div><pre id="output" class="output" dir="ltr"><span class="placeholder">JSON معتبر اینجا نمایش داده می‌شود.</span></pre><div class="actions"><button id="copy" disabled>کپی JSON</button><button id="download" disabled>دریافت فایل</button></div></section></div><section class="card results-section"><div class="card-head"><span class="step">⇄</span><div><h2>نتایج گفتار و مقایسه</h2><p>متن خام، زمان‌ها، خطاها و معیارهای هر موتور جدا ثبت می‌شود.</p></div></div><div id="asrResults" class="results-grid"><p class="hint">پس از تبدیل صوت، نتیجهٔ هر موتور اینجا نمایش داده می‌شود.</p></div></section><section id="jsonCompare" class="card results-section" hidden><h2>مقایسه JSON</h2><p class="hint">اعتبار ساختاری به معنی صحت برداشت از متن نیست.</p><div id="jsonCompareResults" class="results-grid"></div></section>
+  <section class="card output-card"><div class="card-head"><span class="step">۰۴</span><div><h2>خروجی ساخت‌یافته</h2><p>نتیجه را پیش از هر استفاده‌ای بازبینی کنید.</p></div></div><label class="field-label" for="apiModel">مدل استخراج JSON</label><input id="modelSearch" class="wide-select" type="search" placeholder="جست‌وجوی نام مدل یا سازنده…" aria-label="جست‌وجوی مدل استخراج" aria-controls="apiModel" autocomplete="off"><button id="reloadModels" type="button">دریافت دوبارهٔ مدل‌ها</button><p id="modelCatalogStatus" class="hint" role="status">در حال دریافت فهرست مدل‌ها…</p><select id="apiModel" class="wide-select model-select" size="5" aria-describedby="modelCatalogStatus"><option value="nvidia/nemotron-3.5-super-vl:free">Nemotron 3.5 Super VL</option><option value="baidu/ernie-5.5-flash-preview:free">ERNIE 5.5 Flash Preview</option><option value="inclusionai/ling-3.2-flash:free">Ling 3.2 Flash</option><option value="liquid/lfm-3-1.7b:free">LFM3 1.7B</option></select><div id="apiInfo" class="model"></div><div id="apiKeyStatus" class="key-status" role="status">در حال بررسی تنظیمات API…</div><p class="hint privacy-hint">کلید API فقط در فایل <code>.env</code> روی سرور محلی خوانده می‌شود و به مرورگر تحویل داده نمی‌شود. هنگام استخراج، متن و JSON Schema به سرویس تنظیم‌شده فرستاده می‌شوند؛ فایل صوتی ارسال نمی‌شود. مدل‌های OpenRouter ممکن است رایگان یا پولی باشند؛ تعرفه و دسترسی آن‌ها تابع سرویس است.</p><div class="actions"><button id="extract" class="primary">تبدیل متن به JSON</button><button id="compareJson">مقایسه JSON متن‌های ASR</button><button id="cancel" disabled>توقف پردازش</button></div><div id="status" class="status idle">آماده</div><div id="progress" class="progress-list"></div><div id="timings" class="timings"></div><div id="tokenUsage" class="token-usage" role="status">مصرف توکن پس از استخراج نمایش داده می‌شود.</div><pre id="output" class="output" dir="ltr"><span class="placeholder">JSON معتبر اینجا نمایش داده می‌شود.</span></pre><div class="actions"><button id="copy" disabled>کپی JSON</button><button id="download" disabled>دریافت فایل</button></div></section></div><section class="card results-section"><div class="card-head"><span class="step">⇄</span><div><h2>نتایج گفتار و مقایسه</h2><p>متن خام، زمان‌ها، خطاها و معیارهای هر موتور جدا ثبت می‌شود.</p></div></div><div id="asrResults" class="results-grid"><p class="hint">پس از تبدیل صوت، نتیجهٔ هر موتور اینجا نمایش داده می‌شود.</p></div></section><section id="jsonCompare" class="card results-section" hidden><h2>مقایسه JSON</h2><p class="hint">اعتبار ساختاری به معنی صحت برداشت از متن نیست.</p><div id="jsonCompareResults" class="results-grid"></div></section>
   <section class="footer-card"><div><h2>مدل‌ها و فضای ذخیره</h2><p id="cacheSize">در حال بررسی فضای کش…</p><p id="offline">آمادگی آفلاین مدل‌های صوتی بررسی نشده است.</p></div><div class="actions"><button id="persistStorage">درخواست نگهداری پایدار</button><button id="clearCache">حذف کش مدل‌ها</button></div></section>
   <footer>آوا هیچ فاکتور یا تغییر موجودی ثبت نمی‌کند. صحت معنایی نتیجه را خودتان بررسی کنید.</footer></main>`;
 
@@ -46,6 +46,67 @@ const jsonResults = new Map<string, { result?: unknown; usage?: TokenUsage | nul
 let audioSeconds = 0;
 let cancelled = false;
 
+type ExtractionModel = { id: string; name: string; pinned: boolean; free: boolean; structured: boolean | null };
+let extractionModels: ExtractionModel[] = Object.entries(OPENROUTER_MODELS).map(([id, model]) => ({ id, name: model.label, pinned: true, free: true, structured: true }));
+let catalogFallback = false;
+let catalogError = '';
+let catalogLoading = false;
+
+function filterExtractionModels(): void {
+  const query = $<HTMLInputElement>('modelSearch').value.trim().toLocaleLowerCase();
+  const select = $<HTMLSelectElement>('apiModel');
+  let count = 0;
+  for (const option of Array.from(select.options)) {
+    option.hidden = !`${option.textContent} ${option.value}`.toLocaleLowerCase().includes(query);
+    if (!option.hidden) count++;
+  }
+  for (const group of Array.from(select.querySelectorAll('optgroup'))) group.hidden = Array.from(group.children).every(option => (option as HTMLOptionElement).hidden);
+  if (!extractionModels.length) {
+    $('modelCatalogStatus').textContent = catalogError || 'فهرست مدل‌های سرویس دریافت نشد. اتصال را بررسی کنید یا OPENAI_MODEL را در .env تنظیم و سرور را دوباره اجرا کنید.';
+    return;
+  }
+  $('modelCatalogStatus').textContent = `${count.toLocaleString('fa-IR')} مدل${count === 0 ? '؛ نتیجه‌ای پیدا نشد. جست‌وجو را تغییر دهید.' : ''}${catalogFallback ? ` · ${catalogError || 'دریافت فهرست تازه ممکن نشد.'} فهرست پشتیبان نمایش داده می‌شود.` : ''}`;
+}
+
+async function loadExtractionModels(refresh = false): Promise<void> {
+  if (catalogLoading) return;
+  catalogLoading = true;
+  $<HTMLButtonElement>('reloadModels').disabled = true;
+  $<HTMLSelectElement>('apiModel').disabled = true;
+  $<HTMLInputElement>('modelSearch').disabled = true;
+  $('modelCatalogStatus').textContent = 'در حال دریافت فهرست مدل‌ها…';
+  try {
+    const response = await fetch(refresh ? '/api/models?refresh=1' : '/api/models', { cache: 'no-store', signal: AbortSignal.timeout(35_000) });
+    const body = await response.json() as { data?: ExtractionModel[]; fallback?: boolean; error?: string };
+    if (!response.ok || !Array.isArray(body.data)) throw new Error('Model catalog unavailable');
+    extractionModels = body.data;
+    catalogFallback = Boolean(body.fallback);
+    catalogError = typeof body.error === 'string' ? body.error : '';
+  } catch { catalogFallback = true; catalogError = 'ارتباط با سرور محلی برای دریافت مدل‌ها برقرار نشد. سرور را بررسی و دوباره تلاش کنید.'; }
+  finally {
+    catalogLoading = false;
+    $<HTMLButtonElement>('reloadModels').disabled = busy;
+    $<HTMLSelectElement>('apiModel').disabled = busy;
+    $<HTMLInputElement>('modelSearch').disabled = busy;
+  }
+  const select = $<HTMLSelectElement>('apiModel');
+  const old = select.value;
+  const pinned = document.createElement('optgroup'); pinned.label = 'مدل‌های منتخب آوا';
+  const others = document.createElement('optgroup'); others.label = 'سایر مدل‌ها';
+  for (const model of extractionModels) {
+    const option = new Option(`${model.name} · ${model.id} · ${model.free ? 'رایگان' : 'تعرفهٔ سرویس'}`, model.id);
+    (model.pinned ? pinned : others).append(option);
+  }
+  select.replaceChildren(...[pinned, others].filter(group => group.children.length));
+  select.value = extractionModels.some(model => model.id === old) ? old : extractionModels[0]?.id ?? '';
+  filterExtractionModels();
+  updateModelInfo();
+  if (select.value !== old) invalidate();
+}
+
+$<HTMLInputElement>('modelSearch').oninput = filterExtractionModels;
+$<HTMLButtonElement>('reloadModels').onclick = () => { void loadExtractionModels(true); };
+
 function selectedEngines(): AsrEngine[] {
   const choice = $<HTMLSelectElement>('asrMode').value;
   return choice === 'all' ? ['tiny', 'small', 'shenava', 'shenavaRizeh', 'shenavaKoochik'] : choice === 'both' ? ['tiny', 'shenava'] : choice === 'shenavaAll' ? ['shenava', 'shenavaRizeh', 'shenavaKoochik'] : choice in ASR_MODELS ? [choice as AsrEngine] : [];
@@ -53,7 +114,8 @@ function selectedEngines(): AsrEngine[] {
 function updateModelInfo(): void {
   $('asrModels').innerHTML = selectedEngines().map(key => { const m = ASR_MODELS[key]; return `<div class="model"><strong>${escapeHtml(m.label)}</strong> · ${escapeHtml(m.revision)}<span>${escapeHtml(m.files)} · دریافت حدود ${m.downloadMB} MB · ${escapeHtml(m.runtime)}</span></div>`; }).join('');
   const model = $<HTMLSelectElement>('apiModel').value as OpenRouterModel;
-  $('apiInfo').innerHTML = `<strong>${escapeHtml(model)}</strong><span>${escapeHtml(OPENROUTER_MODELS[model].provider)} · JSON Schema اجباری · اعتبارسنجی Ajv</span>`;
+  const entry = extractionModels.find(entry => entry.id === model);
+  $('apiInfo').innerHTML = `<strong>${escapeHtml(model)}</strong><span>${entry?.free ? 'رایگان' : 'هزینه و دسترسی تابع سرویس'} · ${entry?.structured === false ? 'پشتیبانی JSON Schema اعلام نشده؛ ممکن است درخواست رد شود' : 'JSON Schema اجباری'} · اعتبارسنجی Ajv</span>`;
 }
 function renderAsrResults(): void {
   const reference = $<HTMLTextAreaElement>('reference').value;
@@ -69,13 +131,13 @@ function renderAsrResults(): void {
 function setStatus(kind: string, message: string): void { status.className = `status ${kind}`; status.textContent = message; }
 function invalidate(): void { result = null; resultVersion = ''; extractionUsage = null; $('tokenUsage').textContent = 'مصرف توکن پس از استخراج نمایش داده می‌شود.'; $('output').innerHTML = '<span class="placeholder">خروجی با تغییر متن یا قالب منقضی شد.</span>'; ($<HTMLButtonElement>('copy')).disabled = true; ($<HTMLButtonElement>('download')).disabled = true; }
 function snapshot(): string { return transcript.value + '\u0000' + schemaInput.value + '\u0000' + $<HTMLSelectElement>('apiModel').value; }
-function setBusy(value: boolean): void { busy = value; ($<HTMLButtonElement>('transcribe')).disabled = value || !audio; ($<HTMLButtonElement>('extract')).disabled = value; ($<HTMLButtonElement>('compareJson')).disabled = value; ($<HTMLButtonElement>('record')).disabled = value; ($<HTMLInputElement>('audioFile')).disabled = value; ($<HTMLSelectElement>('apiModel')).disabled = value; ($<HTMLSelectElement>('asrMode')).disabled = value; ($<HTMLSelectElement>('executionDevice')).disabled = value; ($<HTMLButtonElement>('cancel')).disabled = !value; }
+function setBusy(value: boolean): void { busy = value; ($<HTMLButtonElement>('transcribe')).disabled = value || !audio; ($<HTMLButtonElement>('extract')).disabled = value; ($<HTMLButtonElement>('compareJson')).disabled = value; ($<HTMLButtonElement>('record')).disabled = value; ($<HTMLInputElement>('audioFile')).disabled = value; ($<HTMLSelectElement>('apiModel')).disabled = value || catalogLoading; ($<HTMLInputElement>('modelSearch')).disabled = value || catalogLoading; ($<HTMLButtonElement>('reloadModels')).disabled = value || catalogLoading; ($<HTMLSelectElement>('asrMode')).disabled = value; ($<HTMLSelectElement>('executionDevice')).disabled = value; ($<HTMLButtonElement>('cancel')).disabled = !value; }
 function errorMessage(error: unknown): string { return error instanceof Error ? error.message : String(error); }
 function showError(message: string): void { setStatus('error', message); progress.textContent = ''; }
 function formatTime(ms: number): string { return `${(ms / 1000).toFixed(1)} ثانیه`; }
 function updateTimes(): void { $('timings').textContent = [transcriptionMs != null && `تبدیل صوت: ${formatTime(transcriptionMs)}`, extractionMs != null && `استخراج: ${formatTime(extractionMs)}`].filter(Boolean).join(' · '); }
 function usageText(usage: TokenUsage | null): string {
-  if (!usage) return 'مصرف توکن از OpenRouter گزارش نشد.';
+  if (!usage) return 'مصرف توکن از سرویس گزارش نشد.';
   const count = (value: number | null) => value == null ? 'نامشخص' : value.toLocaleString('fa-IR');
   return `توکن ورودی: ${count(usage.promptTokens)} · خروجی: ${count(usage.completionTokens)} · مجموع: ${count(usage.totalTokens)}${usage.reasoningTokens != null ? ` · استدلال (بخشی از خروجی): ${count(usage.reasoningTokens)}` : ''}${usage.cachedTokens != null ? ` · ورودی کش‌شده: ${count(usage.cachedTokens)}` : ''}`;
 }
@@ -102,7 +164,7 @@ async function requireDevice(): Promise<'webgpu' | 'wasm'> {
 async function runExtraction(text: string, schema: Record<string, unknown>, model: OpenRouterModel): Promise<ExtractionResult> {
   const controller = new AbortController();
   apiController = controller;
-  setStatus('working', 'در حال استخراج با OpenRouter؛ متن و Schema ارسال شدند.');
+  setStatus('working', 'در حال استخراج؛ متن و Schema ارسال شدند.');
   try { return await extractWithOpenRouter(text, schema, controller.signal, fetch, model); }
   finally { if (apiController === controller) apiController = null; }
 }
@@ -217,7 +279,7 @@ $('extract').onclick = async () => {
   if (!transcript.value.trim()) return showError('ابتدا متن را وارد کنید.');
   let schema;
   try { schema = forceClosedObjects(parseSchema(schemaInput.value)); } catch (e) { return showError('قالب معتبر نیست: ' + errorMessage(e)); }
-  $('tokenUsage').textContent = 'در انتظار پاسخ OpenRouter…';
+  $('tokenUsage').textContent = 'در انتظار پاسخ سرویس…';
   setBusy(true); const version = snapshot(); const began = performance.now();
   try { const { data, usage } = await runExtraction(transcript.value, schema, $<HTMLSelectElement>('apiModel').value as OpenRouterModel); extractionUsage = usage; $('tokenUsage').textContent = usageText(usage); if (version !== snapshot()) throw new Error('متن یا قالب در زمان پردازش تغییر کرد؛ دوباره اجرا کنید.'); result = data; resultVersion = version; const json = JSON.stringify(data, null, 2); $('output').innerHTML = highlight(json); ($<HTMLButtonElement>('copy')).disabled = false; ($<HTMLButtonElement>('download')).disabled = false; extractionMs = performance.now() - began; updateTimes(); setStatus('success', 'JSON از نظر ساختاری معتبر است. صحت معنایی را بازبینی کنید.'); await updateCache(); }
   catch (e) { if (!extractionUsage) $('tokenUsage').textContent = 'مصرف توکن برای این درخواست گزارش نشد.'; if (errorMessage(e) !== 'پردازش لغو شد.') showError(errorMessage(e)); }
@@ -229,7 +291,7 @@ $('download').onclick = () => { if (!result || resultVersion !== snapshot()) ret
 $<HTMLSelectElement>('asrMode').onchange = updateModelInfo;
 $<HTMLSelectElement>('apiModel').onchange = () => { updateModelInfo(); invalidate(); };
 $<HTMLTextAreaElement>('reference').oninput = renderAsrResults;
-$('useReference').onclick = () => { const value = $<HTMLTextAreaElement>('reference').value.trim(); if (!value) return showError('متن مرجع وارد نشده است.'); transcript.value = value; transcript.dispatchEvent(new Event('input')); setStatus('success', 'متن مرجع برای آزمایش مستقیم OpenRouter انتخاب شد.'); };
+$('useReference').onclick = () => { const value = $<HTMLTextAreaElement>('reference').value.trim(); if (!value) return showError('متن مرجع وارد نشده است.'); transcript.value = value; transcript.dispatchEvent(new Event('input')); setStatus('success', 'متن مرجع برای آزمایش مستقیم استخراج انتخاب شد.'); };
 $('asrResults').addEventListener('input', event => { const target = event.target as HTMLTextAreaElement; const key = target.dataset.edit as AsrEngine | undefined; if (key) { const item = asrResults.get(key); if (item) item.edited = target.value; } });
 $('asrResults').addEventListener('click', event => { const target = event.target as HTMLButtonElement; const key = target.dataset.use as AsrEngine | undefined; if (key) { const item = asrResults.get(key); if (item && !item.error) { transcript.value = item.edited ?? item.raw; transcript.dispatchEvent(new Event('input')); setStatus('success', `${ASR_MODELS[key].label}: متن برای استخراج انتخاب شد.`); } } });
 function downloadJson(filename: string, value: unknown): void { const url = URL.createObjectURL(new Blob([JSON.stringify(value, null, 2)], { type: 'application/json' })); const a = document.createElement('a'); a.href = url; a.download = filename; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); }
@@ -283,15 +345,19 @@ async function init(): Promise<void> {
   renderDescriptionFields();
   try {
     const response = await fetch('/api/status', { cache: 'no-store' });
-    const state = await response.json() as { configured?: boolean };
+    const state = await response.json() as { configured?: boolean; model?: string };
+    if (response.ok && typeof state.model === 'string' && state.model.trim()) {
+      extractionModels = [{ id: state.model, name: state.model, pinned: false, free: false, structured: null }];
+    }
     const indicator = $('apiKeyStatus');
     indicator.className = `key-status ${response.ok && state.configured ? 'ready' : 'missing'}`;
-    indicator.textContent = response.ok && state.configured ? '● کلید OpenRouter در سرور بارگذاری شده است؛ دسترسی به سرویس هنگام ارسال درخواست بررسی می‌شود.' : '● کلید OpenRouter در سرور تنظیم نشده است. فایل .env را بررسی و سرور را دوباره اجرا کنید.';
+    indicator.textContent = response.ok && state.configured ? '● کلید API در سرور بارگذاری شده است؛ دسترسی به سرویس هنگام ارسال درخواست بررسی می‌شود.' : '● کلید API در سرور تنظیم نشده است. فایل .env را بررسی و سرور را دوباره اجرا کنید.';
   } catch {
     const indicator = $('apiKeyStatus');
     indicator.className = 'key-status missing';
     indicator.textContent = '● سرویس محلی در دسترس نیست. برنامه را با npm run dev یا npm start اجرا کنید.';
   }
+  await loadExtractionModels();
   const device = await requireDevice().catch(() => null);
   $('capability').textContent = device === 'webgpu' ? 'برای مدل‌های صوتی آداپتور WebGPU در دسترس است؛ سازگاری مدل هنگام بارگذاری بررسی می‌شود.' : device === 'wasm' ? 'برای مدل‌های صوتی WebGPU در دسترس نیست. اجرای WASM آزمایش می‌شود؛ ممکن است به حافظهٔ زیادی نیاز داشته باشد.' : 'این مرورگر برای اجرای مدل‌های صوتی مناسب نیست: WebGPU و WASM در دسترس نیستند.';
   await refreshTemplates(); await updateCache();
