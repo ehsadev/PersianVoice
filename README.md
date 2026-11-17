@@ -26,6 +26,8 @@
 ## اجرا
 
 ```bash
+git clone https://github.com/ehsadev/PersianVoice.git
+cd PersianVoice
 npm ci
 npm run dev
 ```
