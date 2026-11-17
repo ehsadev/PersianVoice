@@ -1,4 +1,4 @@
-const SHELL = 'ava-shell-v3';
+const SHELL = 'ava-shell-v4';
 self.addEventListener('install', event => {
   event.waitUntil((async () => {
     const cache = await caches.open(SHELL);
@@ -20,6 +20,7 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
   if (event.request.method !== 'GET') return;
+  if (url.pathname.startsWith('/api/')) return;
   if (url.origin === self.location.origin) {
     event.respondWith((async () => {
       const cached = await caches.match(event.request);

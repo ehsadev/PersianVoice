@@ -4,8 +4,9 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --host 127.0.0.1",
-    "preview": "vite preview --host 127.0.0.1",
+    "dev": "node server/index.mjs --dev",
+    "preview": "node server/index.mjs",
+    "start": "node server/index.mjs",
     "build": "tsc --noEmit && vite build",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
