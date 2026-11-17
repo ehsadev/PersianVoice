@@ -5,7 +5,7 @@ import ortWasmUrl from '../node_modules/onnxruntime-web/dist/ort-wasm-simd-threa
 import ortMjsUrl from '../node_modules/onnxruntime-web/dist/ort-wasm-simd-threaded.jsep.mjs?url';
 
 type Device = 'webgpu' | 'wasm';
-type Request = { engine: AsrEngine; audio: Float32Array; device: Device };
+type Request = { engine: AsrEngine; audio: Float32Array; device: Device; allowFallback: boolean };
 function send(event: string, detail: unknown): void { self.postMessage({ event, detail }); }
 async function fetchCached(base: string, file: string, expectedBytes?: number): Promise<Uint8Array> {
   const url = base + file;
@@ -40,17 +40,26 @@ async function fetchCached(base: string, file: string, expectedBytes?: number): 
   return bytes;
 }
 
-async function whisper(engine: 'tiny' | 'small', audio: Float32Array, device: Device): Promise<AsrMetrics & { raw: string }> {
+async function whisper(engine: 'tiny' | 'small', audio: Float32Array, device: Device, allowFallback: boolean): Promise<AsrMetrics & { raw: string }> {
   const { pipeline, env } = await import('@huggingface/transformers');
   env.useBrowserCache = true;
   const spec = ASR_MODELS[engine];
   send('status', `بارگذاری ${spec.label}`);
   const loadStart = performance.now();
-  const pipe = await pipeline('automatic-speech-recognition', spec.repo, {
-    device, revision: spec.revision,
+  const create = (provider: Device) => pipeline('automatic-speech-recognition', spec.repo, {
+    device: provider, revision: spec.revision,
     dtype: engine === 'tiny' ? { encoder_model: 'fp32', decoder_model_merged: 'q4' } : { encoder_model: 'fp16', decoder_model_merged: 'q4' },
     progress_callback: (value: Record<string, unknown>) => { if (['progress', 'initiate', 'done'].includes(String(value.status))) send('download', value); },
   });
+  let actualDevice = device;
+  let pipe: Awaited<ReturnType<typeof create>>;
+  try { pipe = await create(device); }
+  catch (error) {
+    if (device !== 'webgpu' || !allowFallback) throw error;
+    send('status', `${spec.label}: WebGPU بارگذاری نشد (${error instanceof Error ? error.message : String(error)}). تلاش با WASM…`);
+    try { pipe = await create('wasm'); actualDevice = 'wasm'; }
+    catch (wasmError) { throw new Error(`WebGPU: ${error instanceof Error ? error.message : String(error)}؛ WASM: ${wasmError instanceof Error ? wasmError.message : String(wasmError)}`); }
+  }
   const loadMs = performance.now() - loadStart;
   try {
     const prepStart = performance.now();
@@ -65,11 +74,11 @@ async function whisper(engine: 'tiny' | 'small', audio: Float32Array, device: De
     }
     const inferMs = performance.now() - inferStart;
     const totalMs = prepMs + inferMs, audioSeconds = audio.length / 16000;
-    return { raw: joinTranscripts(texts), loadMs, prepMs, inferMs, totalMs, audioSeconds, rtf: totalMs / 1000 / audioSeconds, device };
+    return { raw: joinTranscripts(texts), loadMs, prepMs, inferMs, totalMs, audioSeconds, rtf: totalMs / 1000 / audioSeconds, device: actualDevice };
   } finally { await pipe.dispose(); }
 }
 
-async function runShenava(engine: 'shenava' | 'shenavaRizeh' | 'shenavaKoochik', audio: Float32Array, device: Device): Promise<AsrMetrics & { raw: string }> {
+async function runShenava(engine: 'shenava' | 'shenavaRizeh' | 'shenavaKoochik', audio: Float32Array, device: Device, allowFallback: boolean): Promise<AsrMetrics & { raw: string }> {
   const shenava = ASR_MODELS[engine];
   const base = `https://huggingface.co/${shenava.repo}/resolve/${shenava.revision}/`;
   send('status', `بارگذاری ${shenava.label}`);
@@ -85,8 +94,15 @@ async function runShenava(engine: 'shenava' | 'shenavaRizeh' | 'shenavaKoochik',
   ort.env.wasm.numThreads = 1;
   ort.env.wasm.wasmPaths = { wasm: new URL(ortWasmUrl, self.location.origin).href, mjs: new URL(ortMjsUrl, self.location.origin).href };
   let session: any;
+  let actualDevice = device;
   try { session = await ort.InferenceSession.create(model, { executionProviders: [device], graphOptimizationLevel: 'all' }); }
-  catch (error) { throw new Error(`شنوا روی ${device.toUpperCase()} بارگذاری نشد: ${error instanceof Error ? error.message : error}`); }
+  catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    if (device !== 'webgpu' || !allowFallback) throw new Error(`شنوا روی ${device.toUpperCase()} بارگذاری نشد: ${detail}`);
+    send('status', `شنوا: WebGPU بارگذاری نشد (${detail}). تلاش با WASM…`);
+    try { session = await ort.InferenceSession.create(model, { executionProviders: ['wasm'], graphOptimizationLevel: 'all' }); actualDevice = 'wasm'; }
+    catch (wasmError) { throw new Error(`شنوا روی WebGPU بارگذاری نشد: ${detail}؛ WASM نیز شکست خورد: ${wasmError instanceof Error ? wasmError.message : String(wasmError)}`); }
+  }
   const loadMs = performance.now() - loadStart;
   try {
     // Fixed graph has 2005 frames (~20 seconds). Use 19-second windows and 2-second overlap.
@@ -104,15 +120,15 @@ async function runShenava(engine: 'shenava' | 'shenavaRizeh' | 'shenavaKoochik',
       texts.push(decodeShenava(logits.data as Float32Array | Uint16Array, logits.dims, len, tokenFile.tokens, tokenFile.blank_id));
     }
     const totalMs = prepMs + inferMs, audioSeconds = audio.length / 16000;
-    return { raw: joinTranscripts(texts), loadMs, prepMs, inferMs, totalMs, audioSeconds, rtf: totalMs / 1000 / audioSeconds, device };
+    return { raw: joinTranscripts(texts), loadMs, prepMs, inferMs, totalMs, audioSeconds, rtf: totalMs / 1000 / audioSeconds, device: actualDevice };
   } finally { await session.release(); }
 }
 
 self.onmessage = async (message: MessageEvent<Request>) => {
-  const { engine, audio, device } = message.data;
+  const { engine, audio, device, allowFallback } = message.data;
   try {
     if (!audio?.length) throw new Error('صوتی برای تبدیل موجود نیست.');
-    const result = engine === 'tiny' || engine === 'small' ? await whisper(engine, audio, device) : await runShenava(engine, audio, device);
+    const result = engine === 'tiny' || engine === 'small' ? await whisper(engine, audio, device, allowFallback) : await runShenava(engine, audio, device, allowFallback);
     send('result', result);
   } catch (error) { send('error', error instanceof Error ? error.message : String(error)); }
 };

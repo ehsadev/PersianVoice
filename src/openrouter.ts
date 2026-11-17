@@ -8,8 +8,10 @@ export const OPENROUTER_MODELS = {
   'liquid/lfm-3-1.7b:free': { label: 'LFM3 1.7B', provider: 'Liquid AI' },
 } as const;
 export type OpenRouterModel = keyof typeof OPENROUTER_MODELS;
+export type TokenUsage = { promptTokens: number | null; completionTokens: number | null; totalTokens: number | null; cachedTokens: number | null; reasoningTokens: number | null };
+export type ExtractionResult = { data: unknown; usage: TokenUsage | null };
 
-export async function extractWithOpenRouter(text: string, schema: JsonSchema, signal?: AbortSignal, fetcher: typeof fetch = fetch, model: OpenRouterModel = OPENROUTER_MODEL): Promise<unknown> {
+export async function extractWithOpenRouter(text: string, schema: JsonSchema, signal?: AbortSignal, fetcher: typeof fetch = fetch, model: OpenRouterModel = OPENROUTER_MODEL): Promise<ExtractionResult> {
   if (!text.trim()) throw new Error('متن برای استخراج خالی است.');
   if (!(model in OPENROUTER_MODELS)) throw new Error('مدل OpenRouter پشتیبانی نمی‌شود.');
   let response: Response;
@@ -36,5 +38,10 @@ export async function extractWithOpenRouter(text: string, schema: JsonSchema, si
   const data = (body as { data: unknown }).data;
   const errors = validateOutput(forceClosedObjects(schema), data);
   if (errors.length) throw new Error('خروجی با Schema سازگار نیست: ' + errors.join('؛ '));
-  return data;
+  const rawUsage = (body as { usage?: unknown }).usage;
+  const usage = rawUsage && typeof rawUsage === 'object' && ['promptTokens', 'completionTokens', 'totalTokens', 'cachedTokens', 'reasoningTokens'].every(key => {
+    const value = (rawUsage as Record<string, unknown>)[key];
+    return value === null || (Number.isSafeInteger(value) && Number(value) >= 0);
+  }) ? rawUsage as TokenUsage : null;
+  return { data, usage };
 }

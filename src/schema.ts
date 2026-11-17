@@ -2,6 +2,7 @@ import Ajv, { type ErrorObject } from 'ajv';
 
 export type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
 export type JsonSchema = Record<string, unknown>;
+export type DescriptionField = { path: string[]; label: string; type: string; description: string };
 const ajv = new Ajv({ strict: false, allErrors: true, validateSchema: true, removeAdditional: false });
 
 export function parseSchema(source: string): JsonSchema {
@@ -35,6 +36,34 @@ export function validateOutput(schema: JsonSchema, data: unknown): string[] {
 
 export function describeErrors(errors: ErrorObject[] | null | undefined): string {
   return (errors ?? []).map(e => `${e.instancePath || '/'}: ${e.message ?? 'نامعتبر'}${e.params ? ' ' + JSON.stringify(e.params) : ''}`).join('؛ ');
+}
+
+export function descriptionFields(schema: JsonSchema): DescriptionField[] {
+  const fields: DescriptionField[] = [];
+  function visit(node: JsonSchema, path: string[], label: string): void {
+    fields.push({ path, label, type: Array.isArray(node.type) ? node.type.join(' / ') : String(node.type ?? '—'), description: typeof node.description === 'string' ? node.description : '' });
+    if (node.properties && typeof node.properties === 'object' && !Array.isArray(node.properties)) {
+      for (const [name, child] of Object.entries(node.properties)) {
+        if (child && typeof child === 'object' && !Array.isArray(child)) visit(child as JsonSchema, [...path, 'properties', name], label === 'کل داده' ? name : `${label}.${name}`);
+      }
+    }
+    if (node.items && typeof node.items === 'object' && !Array.isArray(node.items)) visit(node.items as JsonSchema, [...path, 'items'], `${label}[]`);
+  }
+  visit(schema, [], 'کل داده');
+  return fields;
+}
+
+export function setDescription(schema: JsonSchema, path: string[], description: string): JsonSchema {
+  const copy = structuredClone(schema);
+  let node: JsonSchema = copy;
+  for (const key of path) {
+    const next = node[key];
+    if (!next || typeof next !== 'object' || Array.isArray(next)) throw new Error('مسیر فیلد در Schema پیدا نشد.');
+    node = next as JsonSchema;
+  }
+  if (description.trim()) node.description = description.trim();
+  else delete node.description;
+  return copy;
 }
 
 export function schemaFromExample(value: Json): { schema: JsonSchema; ambiguous: string[] } {

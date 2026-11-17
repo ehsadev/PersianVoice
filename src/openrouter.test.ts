@@ -4,8 +4,9 @@ import { extractWithOpenRouter, OPENROUTER_MODEL } from './openrouter';
 const schema = { type: 'object', properties: { count: { type: 'number' } }, required: ['count'] };
 describe('browser extraction client', () => {
   it('sends only text, schema, and model to the same-origin endpoint', async () => {
-    const mock = vi.fn(async () => new Response(JSON.stringify({ data: { count: 2 } }), { status: 200 })) as unknown as typeof fetch;
-    expect(await extractWithOpenRouter('دو قلم', schema, undefined, mock)).toEqual({ count: 2 });
+    const usage = { promptTokens: 48, completionTokens: 12, totalTokens: 60, cachedTokens: null, reasoningTokens: 3 };
+    const mock = vi.fn(async () => new Response(JSON.stringify({ data: { count: 2 }, usage }), { status: 200 })) as unknown as typeof fetch;
+    expect(await extractWithOpenRouter('دو قلم', schema, undefined, mock)).toEqual({ data: { count: 2 }, usage });
     const [url, options] = (mock as unknown as ReturnType<typeof vi.fn>).mock.calls[0];
     expect(url).toBe('/api/extract');
     expect(options.headers).not.toHaveProperty('Authorization');
